@@ -1,155 +1,72 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog
 
+class BiomassPowerPlantApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Biomass Power Plant Simulator")
 
-class Counter_program():
-    def __init__(self):
-        self.window = tk.Tk()
-        self.window.title("tk Examples")
-        self.create_widgets()
+        self.biomass_input_rate = tk.DoubleVar()
+        self.power_output = tk.DoubleVar()
+        self.steam_production_rate = tk.DoubleVar()
 
-        self.radio_variable = tk.StringVar()
-        self.combobox_value = tk.StringVar()
+        input_frame = ttk.Frame(self.root)
+        input_frame.pack(padx=10, pady=10)
 
-    def create_widgets(self):
-        # Create some room around all the internal frames
-        self.window['padx'] = 5
-        self.window['pady'] = 5
+        ttk.Label(input_frame, text="Biomass Input Rate (kg/hour):").grid(row=0, column=0, sticky="w")
+        self.input_entry = ttk.Entry(input_frame, textvariable=self.biomass_input_rate)
+        self.input_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        # - - - - - - - - - - - - - - - - - - - - -
-        # The Commands frame
-        # cmd_frame = ttk.LabelFrame(self.window, text="Commands", padx=5, pady=5, relief=tk.RIDGE)
-        cmd_frame = ttk.LabelFrame(self.window, text="Commands", relief=tk.RIDGE)
-        cmd_frame.grid(row=1, column=1, sticky=tk.E + tk.W + tk.N + tk.S)
+        self.calculate_button = ttk.Button(input_frame, text="Calculate", command=self.calculate)
+        self.calculate_button.grid(row=1, columnspan=2, pady=10)
 
-        button_label = ttk.Label(cmd_frame, text="tk.Button")
-        button_label.grid(row=1, column=1, sticky=tk.W, pady=3)
+        output_frame = ttk.Frame(self.root)
+        output_frame.pack(padx=10, pady=10)
 
-        button_label = ttk.Label(cmd_frame, text="ttk.Button")
-        button_label.grid(row=2, column=1, sticky=tk.W, pady=3)
+        ttk.Label(output_frame, text="Power Output (kW):").grid(row=0, column=0, sticky="w")
+        self.power_output_label = ttk.Label(output_frame, textvariable=self.power_output)
+        self.power_output_label.grid(row=0, column=1, padx=5, pady=5)
 
-        menu_label = ttk.Label(cmd_frame, text="Menu (see examples above)")
-        menu_label.grid(row=3, column=1, columnspan=2, sticky=tk.W, pady=3)
+        ttk.Label(output_frame, text="Steam Production Rate (kg/hour):").grid(row=1, column=0, sticky="w")
+        self.steam_production_label = ttk.Label(output_frame, textvariable=self.steam_production_rate)
+        self.steam_production_label.grid(row=1, column=1, padx=5, pady=5)
 
-        my_button = tk.Button(cmd_frame, text="do something")
-        my_button.grid(row=1, column=2)
+    def calculate(self):
+        biomass_input_rate = self.biomass_input_rate.get()
 
-        my_button = ttk.Button(cmd_frame, text="do something")
-        my_button.grid(row=2, column=2)
+        # Biomass properties (can be adjusted as needed)
+        biomass_moisture_content = 0.1  # Example moisture content (%)
+        biomass_lower_heating_value = 18000  # Example lower heating value (kJ/kg)
 
-        # - - - - - - - - - - - - - - - - - - - - -
-        # The Data entry frame
-        entry_frame = ttk.LabelFrame(self.window, text="Data Entry",
-                                     relief=tk.RIDGE)
-        entry_frame.grid(row=2, column=1, sticky=tk.E + tk.W + tk.N + tk.S)
+        # Boiler efficiency (can be adjusted as needed)
+        boiler_efficiency = 0.80
 
-        entry_label = ttk.Label(entry_frame, text="ttk.Entry")
-        entry_label.grid(row=1, column=1, sticky=tk.W + tk.N)
+        # Turbine efficiency (can be adjusted as needed)
+        turbine_efficiency = 0.85
 
-        text_label = ttk.Label(entry_frame, text="tk.Text")
-        text_label.grid(row=2, column=1, sticky=tk.W + tk.N)
+        # Generator efficiency (can be adjusted as needed)
+        generator_efficiency = 0.90
 
-        scale_label = ttk.Label(entry_frame, text="tk.Scale")
-        scale_label.grid(row=4, column=1, sticky=tk.W)
+        # Calculate the energy content of the biomass input
+        biomass_energy_content = biomass_input_rate * (1 - biomass_moisture_content) * biomass_lower_heating_value
 
-        scale_label2 = ttk.Label(entry_frame, text="ttk.Scale")
-        scale_label2.grid(row=5, column=1, sticky=tk.W)
+        # Calculate the steam production rate
+        steam_production_rate = biomass_energy_content / (2260 * 100)  # Assuming enthalpy of vaporization of water is 2260 kJ/kg
 
-        my_entry = ttk.Entry(entry_frame, width=40)
-        my_entry.grid(row=1, column=2, sticky=tk.W, pady=3)
-        my_entry.insert(tk.END, "Test")
+        # Calculate the power output of the turbine
+        turbine_power_output = steam_production_rate * turbine_efficiency
 
-        my_text = tk.Text(entry_frame, height=5, width=30)
-        my_text.grid(row=2, column=2)
-        my_text.insert(tk.END, "An example of multi-line\ninput")
+        # Calculate the electricity generated by the generator
+        electricity_generated = turbine_power_output * generator_efficiency
 
-        my_spinbox = tk.Spinbox(entry_frame, from_=0, to=10, width=5, justify=tk.RIGHT)
-        my_spinbox.grid(row=3, column=2, sticky=tk.W, pady=3)
+        # Update the labels with the calculated values
+        self.power_output.set(round(electricity_generated, 2))
+        self.steam_production_rate.set(round(steam_production_rate, 2))
 
-        my_scale = tk.Scale(entry_frame, from_=0, to=100, orient=tk.HORIZONTAL,
-                            width=8, length=200)
-        my_scale.grid(row=4, column=2, sticky=tk.W)
+def main():
+    root = tk.Tk()
+    app = BiomassPowerPlantApp(root)
+    root.mainloop()
 
-        my_scale = ttk.Scale(entry_frame, from_=0, to=100, orient=tk.HORIZONTAL,
-                             length=200)
-
-        my_scale.grid(row=5, column=2, sticky=tk.W)
-
-    # - - - - - - - - - - - - - - - - - - - - -
-        # The Choices frame
-        switch_frame = ttk.LabelFrame(self.window, text="Choices", relief=tk.RIDGE, padding=6)
-        switch_frame.grid(row=2, column=2, padx=6, sticky=tk.E + tk.W + tk.N + tk.S)
-
-        checkbox_label = ttk.Label(switch_frame, text="ttk.Checkbutton")
-        checkbox_label.grid(row=1, rowspan=3, column=1, sticky=tk.W + tk.N)
-
-        entry_label = ttk.Label(switch_frame, text="ttk.Radiobutton")
-        entry_label.grid(row=4, rowspan=3, column=1, sticky=tk.W + tk.N)
-
-        checkbutton1 = ttk.Checkbutton(switch_frame, text="On-off switch 1")
-        checkbutton1.grid(row=1, column=2)
-        checkbutton2 = ttk.Checkbutton(switch_frame, text="On-off switch 2")
-        checkbutton2.grid(row=2, column=2)
-        checkbutton3 = ttk.Checkbutton(switch_frame, text="On-off switch 3")
-        checkbutton3.grid(row=3, column=2)
-
-        self.radio_variable = tk.StringVar()
-        self.radio_variable.set("0")
-
-        radiobutton1 = ttk.Radiobutton(switch_frame, text="Choice One of three",
-                                       variable=self.radio_variable, value="0")
-        radiobutton2 = ttk.Radiobutton(switch_frame, text="Choice Two of three",
-                                       variable=self.radio_variable, value="1")
-        radiobutton3 = ttk.Radiobutton(switch_frame, text="Choice Three of three",
-                                       variable=self.radio_variable, value="2")
-        radiobutton1.grid(row=4, column=2, sticky=tk.W)
-        radiobutton2.grid(row=5, column=2, sticky=tk.W)
-        radiobutton3.grid(row=6, column=2, sticky=tk.W)
-
-        # - - - - - - - - - - - - - - - - - - - - -
-        # The Choosing from lists frame
-        fromlist_frame = ttk.LabelFrame(self.window, text="Choosing from a list",
-                                        relief=tk.RIDGE)
-        fromlist_frame.grid(row=1, column=2, sticky=tk.E + tk.W + tk.N + tk.S, padx=6)
-
-        listbox_label = tk.Label(fromlist_frame, text="tk.Listbox")
-        listbox_label.grid(row=1, column=1, sticky=tk.W + tk.N)
-
-        combobox_label = tk.Label(fromlist_frame, text="ttk.Combobox")
-        combobox_label.grid(row=2, column=1, sticky=tk.W + tk.N)
-
-        my_listbox = tk.Listbox(fromlist_frame, height=4)
-        for item in ["one", "two", "three", "four"]:
-            my_listbox.insert(tk.END, "Choice " + item)
-        my_listbox.grid(row=1, column=2)
-
-        self.combobox_value = tk.StringVar()
-        my_combobox = ttk.Combobox(fromlist_frame, height=4, textvariable=self.combobox_value)
-        my_combobox.grid(row=2, column=2)
-        my_combobox['values'] = ("Choice one", "Choice two", "Choice three", "Choice four")
-        my_combobox.current(0)
-
-        # - - - - - - - - - - - - - - - - - - - - -
-        # Menus
-        menubar = tk.Menu(self.window)
-
-        filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Open", command=filedialog.askopenfilename)
-        filemenu.add_command(label="Save", command=filedialog.asksaveasfilename)
-        filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.window.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
-
-        self.window.config(menu=menubar)
-
-        # - - - - - - - - - - - - - - - - - - - - -
-        # Quit button in the lower right corner
-        quit_button = ttk.Button(self.window, text="Quit", command=self.window.destroy)
-        quit_button.grid(row=1, column=3)
-
-# Create the entire GUI program
-program = Counter_program()
-
-# Start the GUI event loop
-program.window.mainloop()
+if __name__ == "__main__":
+    main()
