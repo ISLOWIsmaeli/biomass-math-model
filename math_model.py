@@ -34,7 +34,7 @@ def calculate_electrical_power():
 
   # Calculate electrical power output
   electrical_power_output = steam_mass_flow_rate * h_fg * steam_turbine_efficiency * generator_efficiency
-
+  
   # Print the results
   print("\nElectrical Power Output:", electrical_power_output, "MW")
 
