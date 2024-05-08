@@ -22,12 +22,15 @@ def calculate_electrical_power():
 
   # Convert biomass feed rate to kg/s
   biomass_feed_rate_kg_s = biomass_feed_rate * (1000 / 3600)  # tons/hour to kg/s
+  print("The biomass feed rate per kg is: ", biomass_feed_rate_kg_s)
 
   # Calculate heat input rate
   heat_input_rate = biomass_feed_rate_kg_s * lhv_b * combustion_efficiency
+  print("The heat input rate is: ", heat_input_rate)
 
   # Calculate steam mass flow rate
   steam_mass_flow_rate = heat_input_rate / ((Cp_w * (boiler_pressure_temp - feedwater_temp)) + h_fg) * boiler_efficiency
+  print("The steam mass flow rate is: ", steam_mass_flow_rate)
 
   # Calculate electrical power output
   electrical_power_output = steam_mass_flow_rate * h_fg * steam_turbine_efficiency * generator_efficiency
