@@ -1,11 +1,34 @@
 import tkinter as tk
 from tkinter import messagebox
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
 
 # Define constants (assuming constant values)
 Cp_w = 4.18  # kJ/kg⋅K (Specific heat capacity of water)
 h_fg = 2257  # kJ/kg (Latent heat of vaporization of water)
 
-def calculate_electrical_power():
+# Initialize simulation parameters
+time_steps = 100
+time_interval = 1  # in seconds
+
+def calculate_electrical_power(biomass_feed_rate, lhv_b, combustion_efficiency, boiler_efficiency,
+                               steam_turbine_efficiency, generator_efficiency, feedwater_temp, boiler_pressure_temp):
+    # Convert biomass feed rate to kg/s
+    biomass_feed_rate_kg_s = biomass_feed_rate * (1000 / 3600)  # tons/hour to kg/s
+
+    # Calculate heat input rate
+    heat_input_rate = biomass_feed_rate_kg_s * lhv_b * combustion_efficiency
+
+    # Calculate steam mass flow rate
+    steam_mass_flow_rate = heat_input_rate / ((Cp_w * (boiler_pressure_temp - feedwater_temp)) + h_fg) * boiler_efficiency
+
+    # Calculate electrical power output
+    electrical_power_output = steam_mass_flow_rate * h_fg * steam_turbine_efficiency * generator_efficiency
+
+    return electrical_power_output
+
+def start_simulation():
     try:
         biomass_feed_rate = float(biomass_feed_rate_entry.get())
         lhv_b = float(lhv_b_entry.get())
@@ -19,20 +42,37 @@ def calculate_electrical_power():
         messagebox.showerror("Input Error", "Please enter valid numerical values.")
         return
 
-    # Convert biomass feed rate to kg/s
-    biomass_feed_rate_kg_s = biomass_feed_rate * (1000 / 3600)  # tons/hour to kg/s
+    # Perform simulation over time
+    time_series = np.arange(0, time_steps * time_interval, time_interval)
+    power_output_series = []
 
-    # Calculate heat input rate
-    heat_input_rate = biomass_feed_rate_kg_s * lhv_b * combustion_efficiency
+    for t in time_series:
+        power_output = calculate_electrical_power(
+            biomass_feed_rate, lhv_b, combustion_efficiency, boiler_efficiency,
+            steam_turbine_efficiency, generator_efficiency, feedwater_temp, boiler_pressure_temp)
+        power_output_series.append(power_output)
 
-    # Calculate steam mass flow rate
-    steam_mass_flow_rate = heat_input_rate / ((Cp_w * (boiler_pressure_temp - feedwater_temp)) + h_fg) * boiler_efficiency
+    # Update result label
+    result_label.config(text=f"Final Electrical Power Output: {power_output_series[-1]:.2f} MW")
 
-    # Calculate electrical power output
-    electrical_power_output = steam_mass_flow_rate * h_fg * steam_turbine_efficiency * generator_efficiency
+    # Plot the results
+    fig, ax = plt.subplots()
+    ax.plot(time_series, power_output_series, label='Electrical Power Output (MW)')
+    ax.set_xlabel('Time (s)')
+    ax.set_ylabel('Power Output (MW)')
+    ax.set_title('Biomass Power Plant Simulation')
+    ax.legend()
 
-    # Display the results
-    result_label.config(text=f"Electrical Power Output: {electrical_power_output:.2f} MW")
+    ani = animation.FuncAnimation(fig, update_plot, frames=time_steps, fargs=(time_series, power_output_series, ax), interval=100)
+    plt.show()
+
+def update_plot(frame, time_series, power_output_series, ax):
+    ax.clear()
+    ax.plot(time_series[:frame], power_output_series[:frame], label='Electrical Power Output (MW)')
+    ax.set_xlabel('Time (s)')
+    ax.set_ylabel('Power Output (MW)')
+    ax.set_title('Biomass Power Plant Simulation')
+    ax.legend()
 
 # Create the main window
 root = tk.Tk()
@@ -71,12 +111,12 @@ tk.Label(root, text="Saturation temperature of steam at boiler pressure (°C):")
 boiler_pressure_temp_entry = tk.Entry(root)
 boiler_pressure_temp_entry.grid(row=7, column=1)
 
-# Create and place the calculate button
-calculate_button = tk.Button(root, text="Calculate", command=calculate_electrical_power)
-calculate_button.grid(row=8, column=0, columnspan=2)
+# Create and place the start simulation button
+start_button = tk.Button(root, text="Start Simulation", command=start_simulation)
+start_button.grid(row=8, column=0, columnspan=2)
 
 # Create and place the result label
-result_label = tk.Label(root, text="Electrical Power Output: ")
+result_label = tk.Label(root, text="Final Electrical Power Output: ")
 result_label.grid(row=9, column=0, columnspan=2)
 
 # Start the GUI event loop
